@@ -18,8 +18,8 @@ try:
 
     from crontab import CronTab
     from selenium import webdriver
-    from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException, \
-    StaleElementReferenceException
+    from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException, TimeoutException
+    from selenium.common.exceptions import StaleElementReferenceException
     from selenium.webdriver.common.by import By
     from selenium.webdriver.firefox.options import Options
     from selenium.webdriver.support import expected_conditions as ec
