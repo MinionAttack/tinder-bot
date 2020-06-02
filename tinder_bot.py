@@ -14,6 +14,7 @@ try:
 
     from logger import logger
     from predict import beauty_predict
+    from string import Template
     import face_recognition
 
     from crontab import CronTab
@@ -48,7 +49,7 @@ except ModuleNotFoundError:
 
 class TinderBot:
     UPDATE_XPATH_STRING = 'The item could not be found at the specified path. The XPaths file needs to be updated.'
-    PHOTO_FOLDER_NAME = '{} - {} year(s) - {} photo(s)'
+    PHOTO_FOLDER_NAME = Template('$name - $age year(s) - $photos photo(s)')
 
     def __init__(self):
         logger.info('Initializing bot.')
@@ -319,18 +320,20 @@ class TinderBot:
         photo_index = 1  # Tinder starts the index at 1 instead of 0.
 
         for photo_available in photos_available:
-            self.simulate_human_response_time()
-            buttons_locator = (By.XPATH, photo_selector.format(photo_index))
-            self.web_driver_wait.until(ec.element_to_be_clickable(buttons_locator))
-            photo_available.click()
-            # We need time so the photo of the pressed button loads
-            self.simulate_human_response_time()
-            logger.info('Getting photo {}.'.format(photo_index))
-            photo_url = self.get_profile_photo(selected_photo, photo_index)
-            logger.info('Photo {} URL: {}.'.format(photo_index, photo_url))
-            photos.append(photo_url)
-            photo_index += 1
-
+            try:
+                self.simulate_human_response_time()
+                buttons_locator = (By.XPATH, Template(photo_selector).substitute(index=photo_index))
+                self.web_driver_wait.until(ec.element_to_be_clickable(buttons_locator))
+                photo_available.click()
+                # We need time so the photo of the pressed button loads
+                self.simulate_human_response_time()
+                logger.info('Getting photo {}.'.format(photo_index))
+                photo_url = self.get_profile_photo(selected_photo, photo_index)
+                logger.info('Photo {} URL: {}.'.format(photo_index, photo_url))
+                photos.append(photo_url)
+                photo_index += 1
+            except ElementClickInterceptedException:
+                logger.warning('Element obscured, it is possible that a profile has answered on the chat. Retrying.')
         return photos
 
     def detect_human_photos(self, profile_data):
@@ -341,7 +344,7 @@ class TinderBot:
         profile_name = profile_data['name']
         profile_photos = profile_data['photos']
 
-        details = self.PHOTO_FOLDER_NAME.format(profile_name, profile_age, len(profile_photos))
+        details = self.PHOTO_FOLDER_NAME.substitute(name=profile_name, age=profile_age, photos=len(profile_photos))
         for index, photo in enumerate(profile_photos, start=1):
             fetched_photo = self.load_image_from_url(self.temporary_folder, photo, details)
             if fetched_photo is not None:
@@ -371,14 +374,18 @@ class TinderBot:
                 image_folder = os.path.join(storage_path, details)
                 pathlib.Path(image_folder).mkdir(exist_ok=True)
                 image_path = os.path.join(image_folder, image_name)
-            image_data = requests.get(photo_url)
+            try:
+                image_data = requests.get(photo_url)
 
-            if image_data.status_code == 200:
-                with open(image_path, 'wb') as file:
-                    file.write(image_data.content)
-                return {'details': details, 'image_name': image_name}
-            else:
-                logger.warning('Could not fetch image from URL: {}, skipping.'.format(photo_url))
+                if image_data.status_code == 200:
+                    with open(image_path, 'wb') as file:
+                        file.write(image_data.content)
+                    return {'details': details, 'image_name': image_name}
+                else:
+                    logger.warning('Could not fetch image from URL: {}, skipping.'.format(photo_url))
+                    return None
+            except requests.exceptions.ConnectionError:
+                logger.warning('Max retries exceeded with photo {}. Temporary failure in name resolution'.format(photo_url))
                 return None
         else:
             logger.warning('A URL for the current photo has not been provided. Skipping.'.format(photo_url))
@@ -392,8 +399,8 @@ class TinderBot:
 
     def get_profile_photo(self, xpath, index=None):
         if index is not None:
-            photo_locator = (By.XPATH, xpath.format(index))
-            photo_xpath = xpath.format(index)
+            photo_locator = (By.XPATH, Template(xpath).substitute(index=index))
+            photo_xpath = Template(xpath).substitute(index=index)
         else:
             photo_locator = (By.XPATH, xpath)
             photo_xpath = xpath
@@ -415,8 +422,8 @@ class TinderBot:
     # I do not need to process the videos, but I did the method to learn how retrieve the videos.
     def get_profile_video(self, index=None):
         if index is not None:
-            video_locator = (By.XPATH, actual_video.format(index))
-            video_xpath = actual_video.format(index)
+            video_locator = (By.XPATH, Template(actual_video).substitute(index=index))
+            video_xpath = Template(actual_video).substitute(index=index)
         else:
             # TODO: Find a profile with only one video
             video_locator = ''
@@ -673,14 +680,14 @@ class TinderBot:
                         selector = matched_profile_photo_selector_button
                         selected_photo = matched_profile_photo_path
                         photos = self.loop_over_photos(photos_available, selector, selected_photo)
-                        details = self.PHOTO_FOLDER_NAME.format(profile_name, profile_age, len(photos))
+                        details = self.PHOTO_FOLDER_NAME.substitute(name=profile_name, age=profile_age, photos=len(photos))
                         for photo in photos:
                             self.simulate_human_response_time()
                             self.load_image_from_url(self.matched_folder, photo, details)
                     else:  # The profile has only one photo.
                         self.simulate_human_response_time()
                         photo_url = self.get_profile_photo(matched_profile_one_photo_path)
-                        details = self.PHOTO_FOLDER_NAME.format(profile_name, profile_age, 1)
+                        details = self.PHOTO_FOLDER_NAME.substitute(name=profile_name, age=profile_age, photos=1)
                         self.load_image_from_url(self.matched_folder, photo_url, details)
             except StaleElementReferenceException:
                 logger.error('Element no longer attached to the DOM, not in the current frame context or the document has been refreshed.')
@@ -773,10 +780,11 @@ class TinderBot:
     @staticmethod
     def remove_crontab_entry(comment_text=CRONTAB_BOT_COMMENT):
         user_crontab = CronTab(user=True)
-        exists = user_crontab.find_comment(comment_text)
+        job = user_crontab.find_comment(comment_text)
 
-        if exists:
-            user_crontab.remove_all(comment=comment_text)
+        if job:
+            user_crontab.remove(job)
+            user_crontab.write()
             logger.info('Previous job entry in Crontab was removed.')
         else:
             logger.info('No previous job entry was found in Crontab.')

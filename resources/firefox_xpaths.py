@@ -28,9 +28,9 @@ cardboard = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div
 
 photos_selector = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[2]'
 
-photo_selector_button = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[2]/button[{}]'
+photo_selector_button = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[2]/button[$index]'
 
-actual_photo_path = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[1]/div/div[{}]/div/div'
+actual_photo_path = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[1]/div/div[$index]/div/div'
 
 one_photo_path = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div/div/div/div/div'
 
@@ -40,8 +40,8 @@ candidate_age_path = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1
 
 # With 'actual_photo' you can get the photo_preview of a video but the real paths of the photo and the respective video
 # are this two. The video is in MP4 format.
-actual_photo_video_preview = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[1]/div/div[{}]/div/div[1]'
-actual_video = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[1]/div/div[{}]/div/div[2]/video'
+actual_photo_video_preview = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[1]/div/div[$index]/div/div[1]'
+actual_video = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[1]/div[3]/div[1]/div[1]/div/div[$index]/div/div[2]/video'
 
 buttons_panel = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div[1]/div/div[2]'
 
@@ -65,9 +65,9 @@ matched_profiles_list = '/html/body/div[1]/div/div[1]/div/aside/nav/div/div/div/
 
 matched_profile_photos_selector = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div/div[2]/div/div[1]/div/div/div[1]/span/a/div/div[2]'
 
-matched_profile_photo_selector_button = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div/div[2]/div/div[1]/div/div/div[1]/span/a/div/div[2]/button[{}]'
+matched_profile_photo_selector_button = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div/div[2]/div/div[1]/div/div/div[1]/span/a/div/div[2]/button[$index]'
 
-matched_profile_photo_path = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div/div[2]/div/div[1]/div/div/div[1]/span/a/div/div[1]/div/div[{}]/div/div/div'
+matched_profile_photo_path = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div/div[2]/div/div[1]/div/div/div[1]/span/a/div/div[1]/div/div[$index]/div/div/div'
 
 matched_profile_one_photo_path = '/html/body/div[1]/div/div[1]/div/main/div[1]/div/div/div/div[2]/div/div[1]/div/div/div[1]/span/a/div/div/div/div/div/div/div'
 
